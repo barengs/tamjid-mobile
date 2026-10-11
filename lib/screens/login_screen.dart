@@ -265,7 +265,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: TextField(
                   controller: _pinController,
                   obscureText: _obscurePin,
-                  keyboardType: TextInputType.visiblePassword,
+                  // Paksa keyboard QWERTY penuh (huruf + angka) agar user lama
+                  // dengan password alfanumerik tetap bisa mengetik.
+                  keyboardType: TextInputType.text,
+                  textInputAction: TextInputAction.done,
+                  autocorrect: false,
+                  enableSuggestions: false,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
