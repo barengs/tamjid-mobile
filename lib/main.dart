@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/api_service.dart';
 import 'core/app_theme.dart';
 import 'screens/login_screen.dart';
@@ -7,6 +8,8 @@ import 'screens/history_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Inisialisasi data locale untuk DateFormat (mis. 'EEEE, dd MMMM yyyy', 'id_ID')
+  await initializeDateFormatting('id_ID');
   await ApiService().init();
   runApp(const KomprasiTamjidApp());
 }

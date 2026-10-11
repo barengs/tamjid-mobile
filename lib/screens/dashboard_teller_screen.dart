@@ -19,7 +19,13 @@ class _DashboardTellerScreenState extends State<DashboardTellerScreen> {
   Widget build(BuildContext context) {
     final user = ApiService().currentUser;
     final staffName = user?.name ?? 'Staff Teller';
-    final todayStr = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.now());
+    String todayStr;
+    try {
+      todayStr = DateFormat('EEEE, dd MMMM yyyy', 'id_ID').format(DateTime.now());
+    } catch (_) {
+      final now = DateTime.now();
+      todayStr = '${now.day}/${now.month}/${now.year}';
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
