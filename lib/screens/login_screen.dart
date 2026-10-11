@@ -9,8 +9,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _nipController = TextEditingController(text: 'STF-2024-089');
-  final _pinController = TextEditingController(text: '123456');
+  final _nipController = TextEditingController();
+  final _pinController = TextEditingController();
   bool _obscurePin = true;
   String _selectedShift = 'pagi'; // 'pagi' | 'sore'
   bool _isLoading = false;
@@ -23,14 +23,14 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    final nip = _nipController.text.trim();
-    final pin = _pinController.text.trim();
+    final identifier = _nipController.text.trim();
+    final password = _pinController.text.trim();
 
-    if (nip.isEmpty || pin.isEmpty) {
+    if (identifier.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFFE11D48),
-          content: Text('NIP / ID Petugas dan PIN wajib diisi.'),
+          content: Text('Email/ID Petugas dan Password/PIN wajib diisi.'),
         ),
       );
       return;
@@ -39,28 +39,39 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // 1. Coba login API jika server aktif
-      try {
-        await ApiService().login(email: nip, password: pin);
-      } catch (apiError) {
-        // Fallback / Hardcode friendly jika server offline atau API belum sinkron
-        debugPrint('API login failed, using offline session: $apiError');
-      }
+      // 1. Login online ke server Bank Santri (Email/ID + Password/PIN)
+      await ApiService().login(email: identifier, password: password);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
 
       // Navigasi ke Main Shell
-      Navigator.pushReplacementNamed(
-        context,
-        '/',
-      );
+      Navigator.pushReplacementNamed(context, '/');
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Login gagal: $e')));
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFE11D48),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Login gagal: $e',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
     }
   }
 
@@ -93,10 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    'assets/logo.png',
-                    fit: BoxFit.cover,
-                  ),
+                  child: Image.asset('assets/logo.png', fit: BoxFit.cover),
                 ),
               ),
               const SizedBox(height: 16),
@@ -136,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // 3. Title & Subtitle
               const Text(
-                'TamjidMart',
+                'Tamjid Mobile',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
@@ -161,12 +169,12 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 28),
 
               // Form Fields
-              // NIP / ID Petugas
+              // Email / ID Petugas
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: const [
                   Text(
-                    'NIP / ID Petugas',
+                    'Email / ID Petugas',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -174,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   Text(
-                    'Contoh: STF-2024-089',
+                    'Contoh: teller1@banksantri.id',
                     style: TextStyle(
                       fontSize: 11,
                       color: Color(0xFF0D9488),
@@ -191,14 +199,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 child: TextField(
                   controller: _nipController,
+                  keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF0F172A),
                   ),
                   decoration: const InputDecoration(
+                    hintText: 'Masukkan email atau NIP',
+                    hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                     prefixIcon: Icon(
-                      Icons.badge_outlined,
+                      Icons.account_circle_outlined,
                       color: Color(0xFF64748B),
                       size: 20,
                     ),
@@ -212,12 +223,12 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 14),
 
-              // PIN Akses Keamanan
+              // Password / PIN Akses Keamanan
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'PIN Akses Keamanan',
+                    'Password / PIN',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -229,13 +240,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Silakan hubungi Administrator Bank Santri untuk reset PIN.',
+                            'Silakan hubungi Administrator Bank Santri untuk reset password.',
                           ),
                         ),
                       );
                     },
                     child: const Text(
-                      'Lupa PIN?',
+                      'Lupa Password?',
                       style: TextStyle(
                         fontSize: 11,
                         color: Color(0xFF0D5C3A),
@@ -254,14 +265,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: TextField(
                   controller: _pinController,
                   obscureText: _obscurePin,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.visiblePassword,
                   style: const TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 2,
+                    fontWeight: FontWeight.w600,
                     color: Color(0xFF0F172A),
                   ),
                   decoration: InputDecoration(
+                    hintText: 'Masukkan password akun',
+                    hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
                     prefixIcon: const Icon(
                       Icons.lock_outline,
                       color: Color(0xFF64748B),
@@ -464,7 +476,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
-
 
   Widget _buildShiftCard({
     required String id,
