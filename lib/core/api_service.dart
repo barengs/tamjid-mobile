@@ -111,8 +111,11 @@ class ApiService {
 
       if (res.data['status'] == 'success') {
         _token = res.data['access_token']?.toString();
-        final userData = res.data['user'] as Map<String, dynamic>;
-        _currentUser = User.fromJson(userData);
+        final userRaw = res.data['user'];
+        if (userRaw is! Map<String, dynamic>) {
+          throw Exception('Data profil user tidak ditemukan dari server.');
+        }
+        _currentUser = User.fromJson(userRaw);
 
         final prefs = await SharedPreferences.getInstance();
         if (_token != null) await prefs.setString('auth_token', _token!);
