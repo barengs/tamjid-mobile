@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/api_service.dart';
+import '../core/num_parser.dart';
 import '../widgets/app_header.dart';
 
 class DashboardKoperasiScreen extends StatefulWidget {
@@ -60,10 +61,10 @@ class _DashboardKoperasiScreenState extends State<DashboardKoperasiScreen> {
     final staffName = _dashboardData?['user']?['name'] ?? user?.name ?? 'Petugas Kasir';
 
     final stats = _dashboardData?['stats'] as Map<String, dynamic>? ?? {};
-    final double totalOmzet = (stats['koperasi_total'] ?? 0).toDouble();
-    final int trxCount = (stats['koperasi_count'] ?? 0).toInt();
-    final double cashInDrawer = (stats['cash_in_drawer'] ?? totalOmzet).toDouble();
-    final int offlineQueue = (stats['offline_queue_count'] ?? 0).toInt();
+    final double totalOmzet = toD(stats['koperasi_total']);
+    final int trxCount = toI(stats['koperasi_count']);
+    final double cashInDrawer = toD(stats['cash_in_drawer'], fallback: totalOmzet);
+    final int offlineQueue = toI(stats['offline_queue_count']);
 
     final recentList = (_dashboardData?['recent_transactions'] as List<dynamic>? ?? [])
         .where((t) => t['type'] == 'POS')

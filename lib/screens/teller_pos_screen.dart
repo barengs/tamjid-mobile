@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../core/api_service.dart';
+import '../core/num_parser.dart';
 import '../models/student_account.dart';
 import '../widgets/app_header.dart';
 import '../widgets/student_avatar.dart';
@@ -107,7 +108,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
       final updated = current + val;
       final formatted = NumberFormat('#,###', 'id_ID').format(updated);
       _amountController.text = formatted;
-      _amountController.selection = TextSelection.collapsed(offset: formatted.length);
+      _amountController.selection = TextSelection.collapsed(
+        offset: formatted.length,
+      );
     });
   }
 
@@ -115,7 +118,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
     setState(() {
       final formatted = NumberFormat('#,###', 'id_ID').format(val.toInt());
       _amountController.text = formatted;
-      _amountController.selection = TextSelection.collapsed(offset: formatted.length);
+      _amountController.selection = TextSelection.collapsed(
+        offset: formatted.length,
+      );
     });
   }
 
@@ -164,7 +169,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Color(0xFFD97706),
-          content: Text('Selesaikan atau tunda transaksi aktif terlebih dahulu.'),
+          content: Text(
+            'Selesaikan atau tunda transaksi aktif terlebih dahulu.',
+          ),
         ),
       );
       return;
@@ -174,12 +181,17 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
     setState(() {
       _detectedAccount = txn.account;
       _rfidController.text = txn.account.accountNumber;
-      _amountController.text = NumberFormat('#,###', 'id_ID').format(txn.amount.toInt());
+      _amountController.text = NumberFormat(
+        '#,###',
+        'id_ID',
+      ).format(txn.amount.toInt());
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         backgroundColor: primaryBlue,
-        content: Text('Transaksi tarik tunai ${txn.account.customerName} dilanjutkan.'),
+        content: Text(
+          'Transaksi tarik tunai ${txn.account.customerName} dilanjutkan.',
+        ),
       ),
     );
   }
@@ -215,7 +227,11 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                 padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
                 child: Row(
                   children: [
-                    const Icon(Icons.schedule, size: 18, color: Color(0xFFD97706)),
+                    const Icon(
+                      Icons.schedule,
+                      size: 18,
+                      color: Color(0xFFD97706),
+                    ),
                     const SizedBox(width: 8),
                     const Text(
                       'Antrian Tarik Tunai Ditunda',
@@ -227,7 +243,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 1.5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFD97706),
                         borderRadius: BorderRadius.circular(10),
@@ -299,7 +318,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                               txn.account.customerName.isNotEmpty
                                   ? txn.account.customerName[0].toUpperCase()
                                   : 'S',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                           title: Text(
@@ -311,7 +332,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                           ),
                           subtitle: Text(
                             'NIS ${txn.account.accountNumber} • ${txn.time} WIB',
-                            style: const TextStyle(fontSize: 11, color: Color(0xFF1E3A8A)),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: Color(0xFF1E3A8A),
+                            ),
                           ),
                           trailing: Text(
                             _formatCurrency(txn.amount),
@@ -341,7 +365,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
   Future<void> _detectCard(String identifier) async {
     setState(() => _isLoading = true);
     try {
-      final account = await ApiService().checkAccount(identifier, outletType: 'koperasi');
+      final account = await ApiService().checkAccount(
+        identifier,
+        outletType: 'koperasi',
+      );
       if (!mounted) return;
       setState(() {
         _detectedAccount = account;
@@ -432,15 +459,22 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
       });
 
       final txn = res['transaction'] as Map<String, dynamic>?;
-      final refNumber = txn?['reference_number'] ?? txn?['transaction_number'] ?? '-';
-      final double amountDone = (res['transaction']?['amount'] ?? _amount).toDouble();
-      final double balanceAfterVal = (res['balance_after'] ?? balanceAfter).toDouble();
+      final refNumber =
+          txn?['reference_number'] ?? txn?['transaction_number'] ?? '-';
+      final double amountDone = toD(res['transaction']?['amount'], fallback: _amount);
+      final double balanceAfterVal = toD(res['balance_after'], fallback: balanceAfter);
 
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          icon: const Icon(Icons.check_circle_outline, color: primaryBlue, size: 54),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          icon: const Icon(
+            Icons.check_circle_outline,
+            color: primaryBlue,
+            size: 54,
+          ),
           title: const Text('Penarikan Tunai Berhasil!'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -456,11 +490,17 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
               const SizedBox(height: 8),
               Text(
                 'Santri: ${account.customerName}',
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               Text(
                 'NIS: ${account.accountNumber}',
-                style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: Color(0xFF64748B),
+                ),
               ),
               const SizedBox(height: 8),
               Text(
@@ -469,7 +509,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
               ),
               const SizedBox(height: 6),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEFF6FF),
                   borderRadius: BorderRadius.circular(8),
@@ -504,10 +547,18 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryBlue,
                 minimumSize: const Size(double.infinity, 44),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('SELESAI (OK)', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              child: const Text(
+                'SELESAI (OK)',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),
@@ -531,7 +582,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
         ? (account.balance - account.minimumBalance).clamp(0.0, double.infinity)
         : 0.0;
     final double balanceAfter = (account?.balance ?? 0) - _amount;
-    final bool isBalanceEnough = account == null ? true : balanceAfter >= account.minimumBalance;
+    final bool isBalanceEnough = account == null
+        ? true
+        : balanceAfter >= account.minimumBalance;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -546,7 +599,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
               InkWell(
                 onTap: _showPendingBottomSheet,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
                   margin: const EdgeInsets.fromLTRB(14, 6, 14, 0),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEFF6FF),
@@ -567,7 +623,11 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                           ),
                         ),
                       ),
-                      const Icon(Icons.chevron_right, size: 16, color: primaryBlue),
+                      const Icon(
+                        Icons.chevron_right,
+                        size: 16,
+                        color: primaryBlue,
+                      ),
                     ],
                   ),
                 ),
@@ -576,7 +636,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
             // Konten Tengah
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: primaryBlue))
+                  ? const Center(
+                      child: CircularProgressIndicator(color: primaryBlue),
+                    )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(14, 10, 14, 8),
                       child: Column(
@@ -605,14 +667,20 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                               TextButton.icon(
                                 style: TextButton.styleFrom(
                                   foregroundColor: const Color(0xFF64748B),
-                                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                  ),
                                   minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
                                 ),
                                 icon: const Icon(Icons.refresh, size: 13),
                                 label: const Text(
                                   'Reset',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 onPressed: _resetAmount,
                               ),
@@ -621,7 +689,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                           const SizedBox(height: 4),
                           Container(
                             width: double.infinity,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(14),
@@ -690,6 +761,7 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                             spacing: 6,
                             runSpacing: 6,
                             children: [
+                              _buildQuickChip('+10K', 10000),
                               _buildQuickChip('+20K', 20000),
                               _buildQuickChip('+50K', 50000),
                               _buildQuickChip('+100K', 100000),
@@ -697,7 +769,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                               if (account != null && maxWithdrawable > 0)
                                 ActionChip(
                                   backgroundColor: const Color(0xFFEFF6FF),
-                                  side: const BorderSide(color: Color(0xFFBFDBFE)),
+                                  side: const BorderSide(
+                                    color: Color(0xFFBFDBFE),
+                                  ),
                                   label: Text(
                                     'Semua (${_formatCurrency(maxWithdrawable)})',
                                     style: const TextStyle(
@@ -706,7 +780,8 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                                       color: primaryBlue,
                                     ),
                                   ),
-                                  onPressed: () => _setExactAmount(maxWithdrawable),
+                                  onPressed: () =>
+                                      _setExactAmount(maxWithdrawable),
                                 ),
                             ],
                           ),
@@ -718,11 +793,17 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.info_outline, size: 16, color: Color(0xFF64748B)),
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: Color(0xFF64748B),
+                                ),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -743,7 +824,12 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
             ),
 
             // Bottom Action Bar: FIXED & PERMANEN TERLIHAT
-            _buildBottomBar(account, balanceAfter, isBalanceEnough, maxWithdrawable),
+            _buildBottomBar(
+              account,
+              balanceAfter,
+              isBalanceEnough,
+              maxWithdrawable,
+            ),
           ],
         ),
       ),
@@ -787,7 +873,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                         ),
                         const SizedBox(width: 5),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFDCFCE7),
                             borderRadius: BorderRadius.circular(4),
@@ -818,8 +907,13 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
               ),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   side: const BorderSide(color: Color(0xFFE2E8F0)),
                   foregroundColor: const Color(0xFF64748B),
                   minimumSize: Size.zero,
@@ -876,7 +970,12 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
     );
   }
 
-  Widget _buildSaldoBox(String label, String value, Color valueColor, {bool isBold = false}) {
+  Widget _buildSaldoBox(
+    String label,
+    String value,
+    Color valueColor, {
+    bool isBold = false,
+  }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
@@ -888,7 +987,11 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(fontSize: 9.5, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 9.5,
+              color: Color(0xFF64748B),
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 2),
           Text(
@@ -942,10 +1045,16 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                   keyboardType: TextInputType.text,
                   decoration: InputDecoration(
                     hintText: 'Ketik NIS atau Tap Kartu RFID',
-                    hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                    hintStyle: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF94A3B8),
+                    ),
                     filled: true,
                     fillColor: const Color(0xFFF8FAFC),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -961,7 +1070,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
               IconButton.filled(
                 style: IconButton.styleFrom(
                   backgroundColor: primaryBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 icon: const Icon(Icons.search, size: 20),
                 onPressed: () {
@@ -974,7 +1085,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                 style: IconButton.styleFrom(
                   foregroundColor: primaryBlue,
                   side: const BorderSide(color: primaryBlue),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 icon: const Icon(Icons.qr_code_scanner, size: 20),
                 onPressed: _openScanner,
@@ -1046,7 +1159,9 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                   style: TextStyle(
                     fontSize: 11.5,
                     fontWeight: FontWeight.bold,
-                    color: isBalanceEnough ? const Color(0xFF0F172A) : const Color(0xFFE11D48),
+                    color: isBalanceEnough
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFFE11D48),
                   ),
                 )
               else
@@ -1056,7 +1171,10 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                 ),
               Row(
                 children: [
-                  const Text('Cetak Struk', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                  const Text(
+                    'Cetak Struk',
+                    style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                  ),
                   const SizedBox(width: 4),
                   SizedBox(
                     height: 22,
@@ -1082,21 +1200,33 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: const Color(0xFFD97706),
                     side: const BorderSide(color: Color(0xFFD97706)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   onPressed: _holdTransaction,
-                  child: const Text('Tunda', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  child: const Text(
+                    'Tunda',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
                 ),
                 const SizedBox(width: 8),
               ],
               Expanded(
                 child: ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: canSubmit ? primaryBlue : const Color(0xFFCBD5E1),
+                    backgroundColor: canSubmit
+                        ? primaryBlue
+                        : const Color(0xFFCBD5E1),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     elevation: canSubmit ? 2 : 0,
                   ),
                   icon: const Icon(Icons.payments_rounded, size: 20),
@@ -1104,11 +1234,14 @@ class _TellerPosScreenState extends State<TellerPosScreen> {
                     account == null
                         ? 'TAP KARTU TERLEBIH DAHULU'
                         : (_amount <= 0
-                            ? 'MASUKKAN NOMINAL'
-                            : (isBalanceEnough
-                                ? 'PROSES TARIK TUNAI (${_formatCurrency(_amount)})'
-                                : 'SALDO TIDAK MENCUKUPI')),
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                              ? 'MASUKKAN NOMINAL'
+                              : (isBalanceEnough
+                                    ? 'PROSES TARIK TUNAI (${_formatCurrency(_amount)})'
+                                    : 'SALDO TIDAK MENCUKUPI')),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
                   ),
                   onPressed: canSubmit ? _processWithdrawal : null,
                 ),
@@ -1162,7 +1295,11 @@ class _ScannerModalState extends State<_ScannerModal> {
           const SizedBox(height: 16),
           const Text(
             'Arahkan Kartu Santri ke Kamera',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
           ),
           const SizedBox(height: 16),
           Expanded(

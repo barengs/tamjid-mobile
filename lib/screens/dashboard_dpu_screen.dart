@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_service.dart';
+import '../core/num_parser.dart';
 import '../widgets/app_header.dart';
 
 class DashboardDpuScreen extends StatefulWidget {
@@ -55,9 +56,9 @@ class _DashboardDpuScreenState extends State<DashboardDpuScreen> {
     final staffName = _dashboardData?['user']?['name'] ?? user?.name ?? 'Petugas DPU';
 
     final stats = _dashboardData?['stats'] as Map<String, dynamic>? ?? {};
-    final int dapurCount = (stats['dapur_count'] ?? 0).toInt();
-    final int dapurTarget = (stats['dapur_target'] ?? 620).toInt();
-    final double dapurPercent = (stats['dapur_percentage'] ?? 0.0).toDouble() / 100.0;
+    final int dapurCount = toI(stats['dapur_count']);
+    final int dapurTarget = toI(stats['dapur_target'], fallback: 620);
+    final double dapurPercent = toD(stats['dapur_percentage']) / 100.0;
     final int portionsLeft = (dapurTarget - dapurCount).clamp(0, dapurTarget);
 
     final dapurInfo = _dashboardData?['dapur'] as Map<String, dynamic>? ?? {};

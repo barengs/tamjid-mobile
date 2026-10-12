@@ -1,4 +1,6 @@
 
+import '../core/num_parser.dart';
+
 class MealSession {
   final String id;
   final String name;
@@ -22,7 +24,7 @@ class MealSession {
       name: json['name']?.toString() ?? '',
       startTime: json['start_time']?.toString() ?? '',
       endTime: json['end_time']?.toString() ?? '',
-      price: (json['price'] ?? 0).toDouble(),
+      price: toD(json['price']),
       isActive: json['is_active'] ?? true,
     );
   }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../core/api_service.dart';
+import '../core/num_parser.dart';
 import '../models/student_account.dart';
 import '../widgets/app_header.dart';
 import '../widgets/student_avatar.dart';
@@ -480,7 +481,7 @@ class _KoperasiPosScreenState extends State<KoperasiPosScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                _formatCurrency((res['amount'] ?? 0).toDouble()),
+                _formatCurrency(toD(res['amount'])),
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0D5C3A)),
               ),
               const SizedBox(height: 8),

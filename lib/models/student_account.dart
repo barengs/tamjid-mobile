@@ -1,4 +1,7 @@
 
+import '../core/api_service.dart';
+import '../core/num_parser.dart';
+
 class StudentProfile {
   final String? nis;
   final String? name;
@@ -14,13 +17,27 @@ class StudentProfile {
     this.hostel,
   });
 
-  factory StudentProfile.fromJson(Map<String, dynamic> json) {
+  factory StudentProfile.fromJson(Map<String, dynamic> json, {String? fallbackPhotoUrl, String? defaultNis}) {
+    String? photo = json['photo_url']?.toString() ?? json['photo']?.toString() ?? fallbackPhotoUrl;
+    final nis = json['nis']?.toString() ?? defaultNis;
+
+    // Jika path berupa path relatif (misal: 'students/photos/...'), arahkan ke endpoint foto bank santri
+    if (photo != null && photo.isNotEmpty && !photo.startsWith('http')) {
+      final base = ApiService().baseUrl;
+      photo = '$base/api/koperasi/student-photo/${nis ?? ''}';
+    }
+
+    final currentClass = json['current_class'] is Map<String, dynamic> ? json['current_class'] : null;
+    final hostelObj = json['hostel'] is Map<String, dynamic> ? json['hostel'] : null;
+
     return StudentProfile(
-      nis: json['nis']?.toString(),
+      nis: nis,
       name: json['name']?.toString() ?? json['first_name']?.toString(),
-      photoUrl: json['photo']?.toString() ?? json['photo_url']?.toString(),
-      className: json['class']?['name']?.toString() ?? json['class_name']?.toString(),
-      hostel: json['hostel']?['name']?.toString() ?? json['hostel_name']?.toString(),
+      photoUrl: photo,
+      className: currentClass?['class_name']?.toString() ??
+          json['class']?['name']?.toString() ??
+          json['class_name']?.toString(),
+      hostel: hostelObj?['name']?.toString() ?? json['hostel_name']?.toString(),
     );
   }
 }
@@ -48,7 +65,7 @@ class KitchenStatus {
       isSessionOpen: json['is_session_open'] ?? false,
       alreadyTapped: json['already_tapped'] ?? false,
       lastTapTime: json['last_tap_time']?.toString(),
-      suggestedPrice: (json['suggested_price'] ?? 0).toDouble(),
+      suggestedPrice: toD(json['suggested_price']),
       canClaim: json['can_claim'] ?? false,
     );
   }
@@ -65,6 +82,7 @@ class StudentAccount {
   final double dailyLimit;
   final double spentToday;
   final double? remainingDailyLimit;
+  final String? photoUrl;
   final StudentProfile? student;
   final KitchenStatus? kitchenStatus;
 
@@ -72,6 +90,7 @@ class StudentAccount {
     required this.accountNumber,
     this.cardNumber,
     required this.customerName,
+    this.photoUrl,
     required this.balance,
     required this.balanceFormatted,
     required this.minimumBalance,
@@ -84,22 +103,38 @@ class StudentAccount {
   });
 
   factory StudentAccount.fromJson(Map<String, dynamic> json) {
+    final accNo = json['account_number']?.toString() ?? '';
+    final rootPhoto = json['photo_url']?.toString();
+
+    StudentProfile? studentProfile;
+    if (json['student'] != null && json['student'] is Map<String, dynamic>) {
+      studentProfile = StudentProfile.fromJson(
+        json['student'] as Map<String, dynamic>,
+        fallbackPhotoUrl: rootPhoto,
+        defaultNis: accNo,
+      );
+    }
+
+    String? finalPhoto = studentProfile?.photoUrl ?? rootPhoto;
+    if ((finalPhoto == null || finalPhoto.isEmpty) && accNo.isNotEmpty) {
+      finalPhoto = '${ApiService().baseUrl}/api/koperasi/student-photo/$accNo';
+    }
+
     return StudentAccount(
-      accountNumber: json['account_number']?.toString() ?? '',
+      accountNumber: accNo,
       cardNumber: json['card_number']?.toString(),
       customerName: json['customer_name']?.toString() ?? 'Santri',
-      balance: (json['balance'] ?? 0).toDouble(),
+      photoUrl: finalPhoto,
+      balance: toD(json['balance']),
       balanceFormatted: json['balance_formatted']?.toString() ?? 'Rp 0',
-      minimumBalance: (json['minimum_balance'] ?? 0).toDouble(),
-      withdrawableBalance: (json['withdrawable_balance'] ?? 0).toDouble(),
-      dailyLimit: (json['daily_limit'] ?? 0).toDouble(),
-      spentToday: (json['spent_today'] ?? 0).toDouble(),
+      minimumBalance: toD(json['minimum_balance']),
+      withdrawableBalance: toD(json['withdrawable_balance']),
+      dailyLimit: toD(json['daily_limit']),
+      spentToday: toD(json['spent_today']),
       remainingDailyLimit: json['remaining_daily_limit'] != null
-          ? (json['remaining_daily_limit']).toDouble()
+          ? toD(json['remaining_daily_limit'])
           : null,
-      student: json['student'] != null
-          ? StudentProfile.fromJson(json['student'])
-          : null,
+      student: studentProfile,
       kitchenStatus: json['kitchen_status'] != null
           ? KitchenStatus.fromJson(json['kitchen_status'])
           : null,

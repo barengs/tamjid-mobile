@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/api_service.dart';
 import '../core/app_theme.dart';
+import '../core/num_parser.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -29,7 +30,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (mounted) {
         setState(() {
           _transactions = res['data']['data'] as List<dynamic>? ?? [];
-          _todayTotal = (res['summary']?['today_total_amount'] ?? 0).toDouble();
+          _todayTotal = toD(res['summary']?['today_total_amount']);
           _todayCount = res['summary']?['today_count'] ?? 0;
           _isLoading = false;
         });
@@ -113,7 +114,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     )
                   else
                     ..._transactions.map((trx) {
-                      final amount = (trx['amount'] ?? 0).toDouble();
+                      final amount = toD(trx['amount']);
                       final isDapur = trx['outlet_name']?.toString().contains('Dapur') ?? false;
 
                       return Container(
