@@ -31,7 +31,11 @@ class MealSession {
 }
 
 class KoperasiConfig {
+  final int? merchantId;
   final String? merchantName;
+  final String? merchantAccountNumber;
+  final String? merchantAccountName;
+  final double merchantBalance;
   final String serverTime;
   final String serverHour;
   final bool preventDoubleTap;
@@ -40,7 +44,11 @@ class KoperasiConfig {
   final List<MealSession> sessions;
 
   KoperasiConfig({
+    this.merchantId,
     this.merchantName,
+    this.merchantAccountNumber,
+    this.merchantAccountName,
+    this.merchantBalance = 0,
     required this.serverTime,
     required this.serverHour,
     required this.preventDoubleTap,
@@ -55,8 +63,14 @@ class KoperasiConfig {
         .map((s) => MealSession.fromJson(s as Map<String, dynamic>))
         .toList();
 
+    final merchantMap = json['merchant'] as Map<String, dynamic>?;
+
     return KoperasiConfig(
-      merchantName: json['merchant']?['name']?.toString(),
+      merchantId: merchantMap?['id'] is int ? merchantMap!['id'] : null,
+      merchantName: merchantMap?['name']?.toString(),
+      merchantAccountNumber: merchantMap?['account_number']?.toString(),
+      merchantAccountName: merchantMap?['account_name']?.toString(),
+      merchantBalance: toD(merchantMap?['balance']),
       serverTime: json['server_time']?.toString() ?? '',
       serverHour: json['server_hour']?.toString() ?? '',
       preventDoubleTap: dapurRules['prevent_double_tap'] ?? true,

@@ -27,6 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int? _pingMs; // hasil ping terukur ke server
   String? _lastSyncAt; // waktu sinkronisasi terakhir (tersimpan lokal)
   String? _serverMerchantName; // nama outlet dari server
+  String? _serverMerchantAccount; // nomor rekening penampung merchant dari server
   String? _serverTime; // waktu server dari API
   bool? _serverReachable; // status koneksi hasil percobaan API terakhir
 
@@ -98,6 +99,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _pingMs = stopwatch.elapsedMilliseconds;
         _serverReachable = true;
         _serverMerchantName = config.merchantName;
+        _serverMerchantAccount = config.merchantAccountNumber != null
+            ? '${config.merchantAccountNumber} (${config.merchantAccountName ?? "-"})'
+            : null;
         _serverTime = config.serverTime;
       });
       if (!silent) {
@@ -146,11 +150,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _pingMs = stopwatch.elapsedMilliseconds;
         _serverReachable = true;
         _serverMerchantName = config.merchantName;
+        _serverMerchantAccount = config.merchantAccountNumber != null
+            ? '${config.merchantAccountNumber} (${config.merchantAccountName ?? "-"})'
+            : null;
         _serverTime = config.serverTime;
         _lastSyncAt = now.toIso8601String();
       });
 
       if (!mounted) return;
+
+      final accountLine = config.merchantAccountNumber != null
+          ? 'Rekening Penampung: ${config.merchantAccountNumber} (${config.merchantAccountName ?? "-"})\n'
+          : '';
 
       showDialog(
         context: context,
@@ -161,6 +172,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           content: Text(
             'Koneksi API terhubung aktif.\n'
             'Outlet: ${config.merchantName ?? "Default"}\n'
+            '$accountLine'
             'Waktu Server: ${config.serverTime}\n'
             'Respon: ${_pingMs}ms\n'
             'Tersimpan pada: $lastSyncStr',
@@ -441,6 +453,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _serverReachable == true ? 'Online & Aktif' : 'Tidak Terhubung',
                           isStatusSuccess: _serverReachable == true,
                         ),
+                        if (_serverMerchantAccount != null) ...[
+                          const SizedBox(height: 8),
+                          _buildSyncDetailRow('Rekening Penampung', _serverMerchantAccount!),
+                        ],
                         const SizedBox(height: 8),
                         _buildSyncDetailRow('Terakhir Sinkron', _formatLastSync(_lastSyncAt)),
                         const SizedBox(height: 8),
