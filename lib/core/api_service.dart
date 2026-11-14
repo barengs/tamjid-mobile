@@ -11,7 +11,7 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  static const String defaultBaseUrl = 'https://bank.tamjid.or.id';
+  static const String defaultBaseUrl = 'https://bms.tamjid.or.id';
   static const String defaultApiKey = 'koperasi-secret-2026';
 
   Dio _dio = Dio();
@@ -50,7 +50,8 @@ class ApiService {
     if (savedUrl == null ||
         savedUrl.contains('127.0.0.1') ||
         savedUrl.contains('localhost') ||
-        savedUrl.contains('10.0.2.2')) {
+        savedUrl.contains('10.0.2.2') ||
+        savedUrl.contains('bank.tamjid.or.id')) {
       _baseUrl = defaultBaseUrl;
       await prefs.setString('base_url', defaultBaseUrl);
     } else {
